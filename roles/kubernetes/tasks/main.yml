@@ -1,0 +1,70 @@
+---
+# tasks file for kubernetes
+
+- name: Add kubernetes GPG key
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Add kubernetes repository
+  apt_repository:
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+    filename: kubernetes
+
+- name: Install kubelet
+  apt:
+    name: kubelet
+    state: present
+    update_cache: yes
+
+- name: Install kubeadm
+  apt:
+    name: kubeadm
+    state: present
+    update_cache: yes
+
+- name: Install kubectl
+  apt:
+    name: kubectl
+    state: present
+    update_cache: yes
+
+- name: Disable SWAP (1/2)
+  shell: |
+    swapoff -a
+
+- name: Disable SWAP in fstab (2/2)
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+    replace: '# \1'
+
+#    - name: Enable SWAP in fstab (1/2)
+#      replace:
+#        path: /etc/fstab
+#        regexp: '^# (.+?\sswap\s+sw\s+.*)$'
+#        replace: '\1'
+
+#    - name: Enable SWAP (2/2)
+#      shell: |
+#        swapon -a
+
+- name: Configure docker daemon
+  shell: |
+    cat > /etc/docker/daemon.json << EOF
+    {
+      "exec-opts": ["native.cgroupdriver=systemd"],
+      "log-driver": "json-file",
+      "log-opts": {
+        "max-size": "100m"
+      },
+      "storage-driver": "overlay2"
+    }
+    EOF
+
+- name: Restart docker service
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: docker

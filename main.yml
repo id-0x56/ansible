@@ -1,0 +1,28 @@
+---
+
+- hosts: all
+  become: true
+  roles:
+    - role: update
+
+- hosts: all
+  vars_files:
+    - vars/default.yml
+  roles:
+    - role: ssh
+
+- hosts:
+    - master
+    - node
+  become: true
+  vars_files:
+    - vars/default.yml
+  roles:
+    - role: packages
+
+- hosts:
+    - master
+    - node
+  become: true
+  roles:
+    - role: kubernetes

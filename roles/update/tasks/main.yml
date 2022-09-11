@@ -1,0 +1,16 @@
+---
+# tasks file for update
+
+- name: Upgrade OS
+  apt:
+    upgrade: dist
+
+- name: Update cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Update packages
+  apt:
+    name: "*"
+    state: latest
